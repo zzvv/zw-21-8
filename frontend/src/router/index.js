@@ -20,6 +20,17 @@ const routes = [
       { path: 'instruments', component: () => import('../views/Instruments.vue') },
       { path: 'users', component: () => import('../views/Users.vue') },
     ]
+  },
+  {
+    path: '/parent',
+    component: () => import('../views/ParentLayout.vue'),
+    redirect: '/parent/dashboard',
+    children: [
+      { path: 'dashboard', component: () => import('../views/ParentDashboard.vue') },
+      { path: 'schedules', component: () => import('../views/ParentSchedule.vue') },
+      { path: 'lesson-records', component: () => import('../views/ParentLessonRecords.vue') },
+      { path: 'exams', component: () => import('../views/ParentExams.vue') },
+    ]
   }
 ]
 

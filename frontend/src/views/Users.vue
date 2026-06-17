@@ -38,6 +38,7 @@
             <el-option label="管理员" value="admin" />
             <el-option label="经理" value="manager" />
             <el-option label="教师" value="teacher" />
+            <el-option label="家长" value="parent" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -59,11 +60,11 @@ const dialogVisible = ref(false)
 const form = ref({})
 
 function roleText(r) {
-  const map = { admin: '管理员', manager: '经理', teacher: '教师' }
+  const map = { admin: '管理员', manager: '经理', teacher: '教师', parent: '家长' }
   return map[r] || r
 }
 function roleType(r) {
-  const map = { admin: 'danger', manager: 'warning', teacher: 'success' }
+  const map = { admin: 'danger', manager: 'warning', teacher: 'success', parent: 'primary' }
   return map[r] || 'info'
 }
 function fmtDate(d) {

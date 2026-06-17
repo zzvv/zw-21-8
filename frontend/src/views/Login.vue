@@ -47,7 +47,11 @@ async function login() {
     const me = await request.get('/auth/me')
     store.setUser(me)
     ElMessage.success('登录成功')
-    router.push('/dashboard')
+    if (me.role === 'parent') {
+      router.push('/parent/dashboard')
+    } else {
+      router.push('/dashboard')
+    }
   } finally {
     loading.value = false
   }

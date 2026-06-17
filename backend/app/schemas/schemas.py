@@ -249,3 +249,55 @@ class DashboardOut(BaseModel):
     weekly_schedule: List[CourseScheduleOut]
     recent_lessons: List[LessonRecordOut]
     low_stock_instruments: List[InstrumentOut]
+
+class ParentStudentOut(BaseModel):
+    id: int
+    parent_id: int
+    student_id: int
+    student: Optional[StudentOut] = None
+    class Config:
+        from_attributes = True
+
+class ParentStudentCreate(BaseModel):
+    student_id: int
+
+class ParentScheduleOut(BaseModel):
+    id: int
+    course_id: int
+    course_name: str
+    instrument: Optional[str] = None
+    classroom_id: int
+    classroom_name: str
+    teacher_id: int
+    teacher_name: str
+    weekday: int
+    start_time: str
+    end_time: str
+    start_date: date
+    end_date: Optional[date] = None
+    student_name: str
+
+class ParentLessonRecordOut(BaseModel):
+    id: int
+    lesson_date: date
+    status: str
+    content: Optional[str] = None
+    homework: Optional[str] = None
+    course_name: str
+    teacher_name: str
+
+class ParentExamOut(BaseModel):
+    id: int
+    exam_name: str
+    instrument: Optional[str] = None
+    level: Optional[str] = None
+    exam_date: Optional[date] = None
+    result: Optional[str] = None
+    score: Optional[str] = None
+    certificate_no: Optional[str] = None
+
+class ParentDashboardOut(BaseModel):
+    children: List[StudentOut]
+    upcoming_lessons: List[ParentScheduleOut]
+    recent_lesson_records: List[ParentLessonRecordOut]
+    exam_progress: List[ParentExamOut]

@@ -134,3 +134,12 @@ class Instrument(Base):
     price = Column(Numeric(10, 2), default=0)
     remark = Column(Text)
     created_at = Column(DateTime, default=datetime.now)
+
+class ParentStudent(Base):
+    __tablename__ = 'parent_student'
+    id = Column(Integer, primary_key=True, index=True)
+    parent_id = Column(Integer, ForeignKey('users.id'))
+    student_id = Column(Integer, ForeignKey('students.id'))
+    created_at = Column(DateTime, default=datetime.now)
+    parent = relationship('User')
+    student = relationship('Student')
