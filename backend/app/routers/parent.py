@@ -27,9 +27,14 @@ def bind_child(data: ParentStudentCreate, db: Session = Depends(get_db), current
     existing = db.query(ParentStudent).filter(ParentStudent.parent_id == current_user.id, ParentStudent.student_id == data.student_id).first()
     if existing:
         raise HTTPException(status_code=400, detail="已绑定该学员")
-    if student.parent_phone and current_user.phone:
-        if student.parent_phone.replace(' ', '').replace('-', '') != current_user.phone.replace(' ', '').replace('-', ''):
-            raise HTTPException(status_code=403, detail="手机号不匹配，无法绑定该学员")
+    if not student.parent_phone or not student.parent_phone.strip():
+        raise HTTPException(status_code=403, detail="该学员未登记家长手机号，无法确认归属，请联系教务登记")
+    if not current_user.phone or not current_user.phone.strip():
+        raise HTTPException(status_code=403, detail="您的账号未登记手机号，无法确认归属，请联系管理员")
+    student_phone = student.parent_phone.replace(' ', '').replace('-', '').replace('+', '')
+    parent_phone = current_user.phone.replace(' ', '').replace('-', '').replace('+', '')
+    if student_phone != parent_phone:
+        raise HTTPException(status_code=403, detail="手机号不匹配，无法绑定该学员")
     ps = ParentStudent(parent_id=current_user.id, student_id=data.student_id)
     db.add(ps); db.commit(); db.refresh(ps)
     return ps

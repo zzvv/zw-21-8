@@ -139,13 +139,24 @@
       </div>
     </template>
 
-    <el-dialog title="绑定学员" v-model="showBindDialog" width="400px">
+    <el-dialog title="绑定学员" v-model="showBindDialog" width="420px">
       <el-form :model="bindForm" :rules="bindRules" ref="bindFormRef">
         <el-form-item prop="studentId">
           <el-input v-model="bindForm.studentId" placeholder="请输入学员ID" />
         </el-form-item>
         <el-form-item prop="studentName">
           <el-input v-model="bindForm.studentName" placeholder="请输入学员姓名" />
+        </el-form-item>
+        <el-form-item>
+          <el-alert title="绑定说明" type="info" :closable="false" show-icon>
+            <p>绑定需验证您的手机号与学员登记的家长手机号一致</p>
+            <p>如无法绑定，请联系教务确认：</p>
+            <ul>
+              <li>学员是否已登记家长手机号</li>
+              <li>您的账号是否已登记手机号</li>
+              <li>登记的手机号是否一致</li>
+            </ul>
+          </el-alert>
         </el-form-item>
       </el-form>
       <template #footer>
