@@ -5,12 +5,12 @@ from datetime import date
 from app.core.database import get_db
 from app.models.models import LessonRecord
 from app.schemas.schemas import LessonRecordOut, LessonRecordCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[LessonRecordOut])
-def list_records(enrollment_id: Optional[int] = None, start: Optional[date] = None, end: Optional[date] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_records(enrollment_id: Optional[int] = None, start: Optional[date] = None, end: Optional[date] = None, db: Session = Depends(get_db), _=require_staff_role()):
     q = db.query(LessonRecord).order_by(LessonRecord.lesson_date.desc())
     if enrollment_id: q = q.filter(LessonRecord.enrollment_id == enrollment_id)
     if start: q = q.filter(LessonRecord.lesson_date >= start)
@@ -18,7 +18,7 @@ def list_records(enrollment_id: Optional[int] = None, start: Optional[date] = No
     return q.all()
 
 @router.post("", response_model=LessonRecordOut)
-def create_record(data: LessonRecordCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def create_record(data: LessonRecordCreate, db: Session = Depends(get_db), _=require_staff_role()):
     r = LessonRecord(**data.dict()); db.add(r); db.commit(); db.refresh(r); return r
 
 @router.put("/{rid}", response_model=LessonRecordOut)

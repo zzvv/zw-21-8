@@ -4,12 +4,12 @@ from typing import List, Optional
 from app.core.database import get_db
 from app.models.models import CourseSchedule
 from app.schemas.schemas import CourseScheduleOut, CourseScheduleCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[CourseScheduleOut])
-def list_schedules(teacher_id: Optional[int] = None, classroom_id: Optional[int] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_schedules(teacher_id: Optional[int] = None, classroom_id: Optional[int] = None, db: Session = Depends(get_db), _=require_staff_role()):
     q = db.query(CourseSchedule).filter(CourseSchedule.is_active == True)
     if teacher_id: q = q.filter(CourseSchedule.teacher_id == teacher_id)
     if classroom_id: q = q.filter(CourseSchedule.classroom_id == classroom_id)

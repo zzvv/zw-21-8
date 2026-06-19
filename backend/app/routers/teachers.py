@@ -4,12 +4,12 @@ from typing import List, Optional
 from app.core.database import get_db
 from app.models.models import Teacher
 from app.schemas.schemas import TeacherOut, TeacherCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[TeacherOut])
-def list_teachers(instrument: Optional[str] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_teachers(instrument: Optional[str] = None, db: Session = Depends(get_db), _=require_staff_role()):
     q = db.query(Teacher).filter(Teacher.is_active == True)
     if instrument: q = q.filter(Teacher.instrument == instrument)
     return q.all()

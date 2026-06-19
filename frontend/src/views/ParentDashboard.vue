@@ -51,7 +51,7 @@
         <el-card header="我的孩子" class="section-card">
           <el-row :gutter="16">
             <el-col :span="6" v-for="child in children" :key="child.id">
-              <div class="child-card" :class="{ active: selectedChild === child.id }" @click="selectChild(child.id)">
+              <div class="child-card" :class="{ active: parentStore.selectedChildId === child.id }" @click="selectChild(child.id)">
                 <div class="child-avatar">
                   <el-icon :size="32" color="#3498db"><UserFilled /></el-icon>
                 </div>
@@ -91,7 +91,7 @@
             <el-table-column prop="teacher_name" label="老师" width="80" />
             <el-table-column prop="status" label="状态" width="80">
               <template #default="{ row }">
-                <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
+                <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="content" label="上课内容" min-width="150" />
@@ -159,17 +159,19 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useParentStore } from '../stores/parent.js'
 import { getDashboard, bindChild } from '../api/parent.js'
 
+const parentStore = useParentStore()
 const loaded = ref(false)
-const children = ref([])
 const upcomingLessons = ref([])
 const recentRecords = ref([])
 const examProgress = ref([])
-const selectedChild = ref(null)
 const showBindDialog = ref(false)
 const bindFormRef = ref()
 const bindForm = ref({ studentId: '', studentName: '' })
+
+const children = computed(() => parentStore.children)
 
 const bindRules = {
   studentId: [{ required: true, message: '请输入学员ID', trigger: 'blur' }],
@@ -190,27 +192,28 @@ function getStatusType(status) {
   return map[status] || 'info'
 }
 
+function getStatusText(status) {
+  const map = { attended: '已上课', absent: '缺席', pending: '待上课' }
+  return map[status] || status
+}
+
 function getResultType(result) {
   const map = { passed: 'success', failed: 'danger' }
   return map[result] || 'info'
 }
 
 function selectChild(id) {
-  selectedChild.value = id
-  localStorage.setItem('selectedChild', id)
+  parentStore.selectChild(id)
 }
 
 async function loadData() {
   try {
     const data = await getDashboard()
-    children.value = data.children || []
     upcomingLessons.value = data.upcoming_lessons || []
     recentRecords.value = data.recent_lesson_records || []
     examProgress.value = data.exam_progress || []
-
-    if (children.value.length > 0) {
-      const saved = localStorage.getItem('selectedChild')
-      selectedChild.value = saved ? parseInt(saved) : children.value[0].id
+    if (data.children && data.children.length > 0) {
+      parentStore.children = data.children
     }
   } catch (e) {
     ElMessage.error('加载数据失败')
@@ -227,6 +230,7 @@ async function doBind() {
     ElMessage.success('绑定成功')
     showBindDialog.value = false
     bindForm.value = { studentId: '', studentName: '' }
+    await parentStore.loadChildren()
     loadData()
   } catch (e) {
     ElMessage.error(e.response?.data?.detail || '绑定失败')
@@ -234,13 +238,13 @@ async function doBind() {
 }
 
 onMounted(() => {
-  loadData()
+  parentStore.loadChildren().then(() => {
+    loadData()
+  })
 })
 
-watch(() => localStorage.getItem('selectedChild'), (newVal) => {
-  if (newVal) {
-    selectedChild.value = parseInt(newVal)
-  }
+watch(() => parentStore.selectedChildId, () => {
+  loadData()
 })
 </script>
 

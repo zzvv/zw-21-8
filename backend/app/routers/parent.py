@@ -27,6 +27,9 @@ def bind_child(data: ParentStudentCreate, db: Session = Depends(get_db), current
     existing = db.query(ParentStudent).filter(ParentStudent.parent_id == current_user.id, ParentStudent.student_id == data.student_id).first()
     if existing:
         raise HTTPException(status_code=400, detail="已绑定该学员")
+    if student.parent_phone and current_user.phone:
+        if student.parent_phone.replace(' ', '').replace('-', '') != current_user.phone.replace(' ', '').replace('-', ''):
+            raise HTTPException(status_code=403, detail="手机号不匹配，无法绑定该学员")
     ps = ParentStudent(parent_id=current_user.id, student_id=data.student_id)
     db.add(ps); db.commit(); db.refresh(ps)
     return ps

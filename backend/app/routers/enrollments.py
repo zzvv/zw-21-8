@@ -4,19 +4,19 @@ from typing import List, Optional
 from app.core.database import get_db
 from app.models.models import Enrollment
 from app.schemas.schemas import EnrollmentOut, EnrollmentCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[EnrollmentOut])
-def list_enrollments(student_id: Optional[int] = None, status: Optional[str] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_enrollments(student_id: Optional[int] = None, status: Optional[str] = None, db: Session = Depends(get_db), _=require_staff_role()):
     q = db.query(Enrollment)
     if student_id: q = q.filter(Enrollment.student_id == student_id)
     if status: q = q.filter(Enrollment.status == status)
     return q.order_by(Enrollment.created_at.desc()).all()
 
 @router.post("", response_model=EnrollmentOut)
-def create_enrollment(data: EnrollmentCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def create_enrollment(data: EnrollmentCreate, db: Session = Depends(get_db), _=require_staff_role()):
     e = Enrollment(**data.dict()); db.add(e); db.commit(); db.refresh(e); return e
 
 @router.post("/{eid}/consume")

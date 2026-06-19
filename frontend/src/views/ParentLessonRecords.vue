@@ -6,7 +6,7 @@
           <span>上课记录</span>
           <div class="header-right">
             <el-select v-model="filterChild" placeholder="选择孩子" @change="loadData" style="width: 120px;">
-              <el-option :label="c.name" :value="c.id" v-for="c in children" :key="c.id" />
+              <el-option :label="c.name" :value="c.id" v-for="c in parentStore.children" :key="c.id" />
               <el-option label="全部" :value="null" />
             </el-select>
             <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" @change="loadData" />
@@ -51,10 +51,11 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { getLessonRecords, getChildren } from '../api/parent.js'
+import { useParentStore } from '../stores/parent.js'
+import { getLessonRecords } from '../api/parent.js'
 
+const parentStore = useParentStore()
 const records = ref([])
-const children = ref([])
 const filterChild = ref(null)
 const dateRange = ref([])
 const showDetail = ref(false)
@@ -79,27 +80,20 @@ async function loadData() {
   try {
     const start = dateRange.value[0] ? dateRange.value[0].toISOString().split('T')[0] : null
     const end = dateRange.value[1] ? dateRange.value[1].toISOString().split('T')[0] : null
-    records.value = await getLessonRecords(filterChild.value, start, end)
+    records.value = await getLessonRecords(filterChild.value || parentStore.selectedChildId, start, end)
   } catch (e) {
     console.error('加载上课记录失败', e)
   }
 }
 
-async function loadChildren() {
-  try {
-    children.value = await getChildren()
-  } catch (e) {
-    console.error('加载孩子列表失败', e)
-  }
-}
-
 onMounted(() => {
-  loadChildren()
   loadData()
 })
 
-watch([filterChild, dateRange], () => {
-  loadData()
+watch(() => parentStore.selectedChildId, () => {
+  if (!filterChild.value) {
+    loadData()
+  }
 })
 </script>
 

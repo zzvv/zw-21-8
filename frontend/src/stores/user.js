@@ -24,5 +24,5 @@ const isParent = computed(() => userInfo.value?.role === 'parent')
     localStorage.removeItem('token')
   }
 
-  return { token, userInfo, isLoggedIn, isAdmin, setToken, setUser, logout }
+  return { token, userInfo, isLoggedIn, isAdmin, isParent, setToken, setUser, logout }
 })

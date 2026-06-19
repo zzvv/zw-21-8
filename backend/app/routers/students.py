@@ -4,12 +4,12 @@ from typing import List, Optional
 from app.core.database import get_db
 from app.models.models import Student
 from app.schemas.schemas import StudentOut, StudentCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[StudentOut])
-def list_students(q: Optional[str] = None, level: Optional[str] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_students(q: Optional[str] = None, level: Optional[str] = None, db: Session = Depends(get_db), _=require_staff_role()):
     query = db.query(Student)
     if q:
         query = query.filter((Student.name.contains(q)) | (Student.phone.contains(q)))
@@ -18,7 +18,7 @@ def list_students(q: Optional[str] = None, level: Optional[str] = None, db: Sess
     return query.order_by(Student.created_at.desc()).all()
 
 @router.post("", response_model=StudentOut)
-def create_student(data: StudentCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def create_student(data: StudentCreate, db: Session = Depends(get_db), _=require_staff_role()):
     s = Student(**data.dict()); db.add(s); db.commit(); db.refresh(s); return s
 
 @router.put("/{sid}", response_model=StudentOut)

@@ -5,12 +5,12 @@ from app.core.database import get_db
 from app.core.security import get_password_hash
 from app.models.models import User
 from app.schemas.schemas import UserOut, UserCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[UserOut])
-def list_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), _=require_staff_role()):
     return db.query(User).offset(skip).limit(limit).all()
 
 @router.post("", response_model=UserOut)

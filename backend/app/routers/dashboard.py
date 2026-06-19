@@ -4,12 +4,12 @@ from datetime import datetime, date, timedelta
 from sqlalchemy import func
 from app.core.database import get_db
 from app.models.models import Student, Teacher, Course, Enrollment, LessonRecord, ExamRecord, Instrument, CourseSchedule
-from app.routers.auth import get_current_user
+from app.routers.auth import require_staff_role
 
 router = APIRouter()
 
 @router.get("")
-def dashboard(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def dashboard(db: Session = Depends(get_db), _=require_staff_role()):
     total_students = db.query(Student).count()
     total_teachers = db.query(Teacher).filter(Teacher.is_active == True).count()
     total_courses = db.query(Course).filter(Course.is_active == True).count()

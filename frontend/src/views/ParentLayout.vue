@@ -16,8 +16,8 @@
       <el-header class="header">
         <span class="header-title">{{ pageTitle }}</span>
         <div class="header-right">
-          <el-select v-model="selectedChild" placeholder="选择孩子" class="child-select" @change="handleChildChange">
-            <el-option v-for="child in children" :key="child.id" :label="child.name" :value="child.id" />
+          <el-select v-model="parentStore.selectedChildId" placeholder="选择孩子" class="child-select" @change="handleChildChange">
+            <el-option v-for="child in parentStore.children" :key="child.id" :label="child.name" :value="child.id" />
           </el-select>
           <el-tag size="small" effect="plain">{{ userStore.userInfo?.real_name || userStore.userInfo?.username }}</el-tag>
           <el-button size="small" @click="logout" text><el-icon><SwitchButton /></el-icon> 退出</el-button>
@@ -29,16 +29,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user.js'
-import { getChildren } from '../api/parent.js'
+import { useParentStore } from '../stores/parent.js'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const children = ref([])
-const selectedChild = ref(null)
+const parentStore = useParentStore()
 
 const pageTitle = computed(() => {
   const map = {
@@ -50,20 +49,8 @@ const pageTitle = computed(() => {
   return map[route.path] || '家长端'
 })
 
-async function loadChildren() {
-  try {
-    children.value = await getChildren()
-    if (children.value.length > 0) {
-      const saved = localStorage.getItem('selectedChild')
-      selectedChild.value = saved ? parseInt(saved) : children.value[0].id
-    }
-  } catch (e) {
-    console.error('加载孩子列表失败', e)
-  }
-}
-
 function handleChildChange(val) {
-  localStorage.setItem('selectedChild', val)
+  parentStore.selectChild(val)
 }
 
 function logout() {
@@ -73,10 +60,14 @@ function logout() {
 }
 
 onMounted(() => {
-  loadChildren()
+  parentStore.loadChildren()
 })
 
-defineExpose({ children, selectedChild })
+watch(() => localStorage.getItem('selectedChild'), (newVal) => {
+  if (newVal) {
+    parentStore.selectChild(parseInt(newVal))
+  }
+})
 </script>
 
 <style scoped>

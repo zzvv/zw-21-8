@@ -6,7 +6,7 @@
           <span>课程表</span>
           <div class="header-right">
             <el-select v-model="filterChild" placeholder="选择孩子" @change="loadData">
-              <el-option :label="c.name" :value="c.id" v-for="c in children" :key="c.id" />
+              <el-option :label="c.name" :value="c.id" v-for="c in parentStore.children" :key="c.id" />
               <el-option label="全部" :value="null" />
             </el-select>
           </div>
@@ -66,10 +66,11 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { getSchedules, getChildren } from '../api/parent.js'
+import { useParentStore } from '../stores/parent.js'
+import { getSchedules } from '../api/parent.js'
 
+const parentStore = useParentStore()
 const schedules = ref([])
-const children = ref([])
 const filterChild = ref(null)
 
 const timeSlots = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
@@ -101,27 +102,20 @@ function getCoursesForDay(weekday, time) {
 
 async function loadData() {
   try {
-    schedules.value = await getSchedules(filterChild.value)
+    schedules.value = await getSchedules(filterChild.value || parentStore.selectedChildId)
   } catch (e) {
     console.error('加载课表失败', e)
   }
 }
 
-async function loadChildren() {
-  try {
-    children.value = await getChildren()
-  } catch (e) {
-    console.error('加载孩子列表失败', e)
-  }
-}
-
 onMounted(() => {
-  loadChildren()
   loadData()
 })
 
-watch(filterChild, () => {
-  loadData()
+watch(() => parentStore.selectedChildId, () => {
+  if (!filterChild.value) {
+    loadData()
+  }
 })
 </script>
 

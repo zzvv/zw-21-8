@@ -28,6 +28,13 @@ def require_role(*roles: str):
         return user
     return Depends(checker)
 
+def require_staff_role():
+    def checker(user: User = Depends(get_current_user)):
+        if user.role == 'parent':
+            raise HTTPException(status_code=403, detail="家长无权访问此接口")
+        return user
+    return Depends(checker)
+
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == form_data.username).first()

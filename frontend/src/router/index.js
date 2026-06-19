@@ -44,6 +44,15 @@ router.beforeEach((to) => {
   if (!to.meta.public && !store.isLoggedIn) {
     return '/login'
   }
+  if (store.isLoggedIn) {
+    const isParent = store.userInfo?.role === 'parent'
+    if (isParent && to.path.startsWith('/parent') === false && to.path !== '/login') {
+      return '/parent/dashboard'
+    }
+    if (!isParent && to.path.startsWith('/parent')) {
+      return '/dashboard'
+    }
+  }
 })
 
 export default router

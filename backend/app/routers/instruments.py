@@ -4,12 +4,12 @@ from typing import List, Optional
 from app.core.database import get_db
 from app.models.models import Instrument
 from app.schemas.schemas import InstrumentOut, InstrumentCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[InstrumentOut])
-def list_instruments(status: Optional[str] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_instruments(status: Optional[str] = None, db: Session = Depends(get_db), _=require_staff_role()):
     q = db.query(Instrument)
     if status: q = q.filter(Instrument.status == status)
     return q.order_by(Instrument.created_at.desc()).all()

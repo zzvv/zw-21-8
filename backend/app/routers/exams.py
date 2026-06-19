@@ -5,18 +5,18 @@ from datetime import date
 from app.core.database import get_db
 from app.models.models import ExamRecord
 from app.schemas.schemas import ExamRecordOut, ExamRecordCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[ExamRecordOut])
-def list_exams(student_id: Optional[int] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_exams(student_id: Optional[int] = None, db: Session = Depends(get_db), _=require_staff_role()):
     q = db.query(ExamRecord).order_by(ExamRecord.exam_date.desc())
     if student_id: q = q.filter(ExamRecord.student_id == student_id)
     return q.all()
 
 @router.post("", response_model=ExamRecordOut)
-def create_exam(data: ExamRecordCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def create_exam(data: ExamRecordCreate, db: Session = Depends(get_db), _=require_staff_role()):
     e = ExamRecord(**data.dict()); db.add(e); db.commit(); db.refresh(e); return e
 
 @router.put("/{eid}", response_model=ExamRecordOut)

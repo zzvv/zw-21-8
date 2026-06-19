@@ -4,12 +4,12 @@ from typing import List, Optional
 from app.core.database import get_db
 from app.models.models import Course
 from app.schemas.schemas import CourseOut, CourseCreate
-from app.routers.auth import get_current_user, require_role
+from app.routers.auth import require_role, require_staff_role
 
 router = APIRouter()
 
 @router.get("", response_model=List[CourseOut])
-def list_courses(instrument: Optional[str] = None, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def list_courses(instrument: Optional[str] = None, db: Session = Depends(get_db), _=require_staff_role()):
     q = db.query(Course).filter(Course.is_active == True)
     if instrument: q = q.filter(Course.instrument == instrument)
     return q.all()
